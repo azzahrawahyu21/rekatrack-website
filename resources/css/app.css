@@ -1,0 +1,29 @@
+/* Import Bootstrap */
+@import 'bootstrap/dist/css/bootstrap.min.css';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+/* Custom Styles */
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #f8f9fa;
+}
+
+.sidebar {
+  min-height: 100vh;
+  background-color: #212529;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f8f9fa;
+  transition: all 0.2s ease;
+}
+
+.card {
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.badge {
+  font-weight: 500;
+  padding: 0.35em 0.65em;
+}
