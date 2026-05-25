@@ -6,9 +6,14 @@ use App\Http\Controllers\ProfileWebController;
 use App\Http\Controllers\SuperAdminWebController;
 use App\Http\Controllers\UnitWebController;
 use App\Http\Controllers\TrackingController;
+use App\Http\Controllers\NotificationWebController;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use App\Models\TravelDocument;
+use App\Mail\DriverNotification;
+use App\Services\NotificationService;
 
 // ========================================
 // ROOT REDIRECT
@@ -71,6 +76,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/{id}/restore', [AdminWebController::class, 'shippingsRestore'])->name('restore');
             Route::get('/{id}/report', [AdminWebController::class, 'shippingsReport'])->name('report');
             Route::get('/{id}/report/print', [AdminWebController::class, 'printReport'])->name('print-report');
+            Route::post('/{id}/assign-driver', [AdminWebController::class, 'assignDriver'])->name('assign-driver');
 
         });
 
@@ -94,6 +100,14 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/{unit}', [UnitWebController::class, 'update'])->name('update');
             Route::delete('/{unit}', [UnitWebController::class, 'destroy'])->name('destroy');
         });
+
+    // Notification Routes
+    Route::prefix('web/notifications')->name('web.notifications.')->group(function () {
+        Route::get('/unread-count', [NotificationWebController::class, 'unreadCount'])->name('unread-count');
+        Route::get('/',             [NotificationWebController::class, 'index'])->name('index');
+        Route::post('/read-all',    [NotificationWebController::class, 'markAllRead'])->name('read-all');
+        Route::post('/{id}/read',   [NotificationWebController::class, 'markRead'])->name('read');
+    });
 });
 
 // ========================================
@@ -111,4 +125,14 @@ Route::middleware(['auth', RoleMiddleware::class . ':super admin'])->group(funct
             Route::put('/{id}', [SuperAdminWebController::class, 'update'])->name('update');
             Route::delete('/{id}', [SuperAdminWebController::class, 'delete'])->name('destroy');
         });
+});
+
+Route::get('/test-notif-email/{driver_id}', function ($driver_id) {
+    $doc = TravelDocument::latest()->first();
+    if (!$doc) return 'Tidak ada dokumen';
+
+    $service = app(\App\Services\NotificationService::class);
+    $service->notifyAssigned($doc, $driver_id);
+
+    return 'Notifikasi penugasan dikirim ke driver ID: ' . $driver_id;
 });

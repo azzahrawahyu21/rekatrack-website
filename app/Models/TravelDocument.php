@@ -65,4 +65,8 @@ class TravelDocument extends Model
         return $this->hasMany(TravelDocumentAttachment::class, 'travel_document_id');
     }
 
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
 }

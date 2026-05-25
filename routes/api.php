@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DriverController;
+use App\Http\Controllers\Api\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -16,6 +17,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/travel-documents', [DriverController::class, 'showTravelDocuments']);
     Route::get('/travel-document/scan/{code}', [DriverController::class, 'showByScanCode']);
     Route::get('/travel-document/{id}', [DriverController::class, 'showDetailTravelDocument']);
+    Route::post('/travel-document/{id}/pickup', [DriverController::class, 'pickup']);
+    Route::post('/travel-document/{id}/delivered', [DriverController::class, 'delivered']);
     Route::post('/send-location', [DriverController::class, 'sendLocation']);
     Route::post('/update-status', [DriverController::class, 'updateStatusSendSJN']);
     Route::post('/complete-tracking', [DriverController::class, 'completeDelivery']);
@@ -24,4 +27,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user/avatar', [AuthController::class, 'updateAvatar']);
     Route::post('/upload-delivery-photo', [DriverController::class, 'uploadDeliveryPhoto']);
     Route::get('/delivery-confirmation/{id}', [DriverController::class, 'showDeliveryConfirmation']);
+        Route::prefix('notifications')->name('api.notifications.')->group(function () {
+        Route::get('/',             [NotificationController::class, 'index'])->name('index');
+        Route::get('/unread-count', [NotificationController::class, 'unreadCount'])->name('unread-count');
+        Route::post('/read-all',    [NotificationController::class, 'markAllRead'])->name('read-all');
+        Route::post('/{id}/read',   [NotificationController::class, 'markRead'])->name('read');
+    });
 });

@@ -255,6 +255,11 @@ class AdminWebController extends Controller
 
         $units = Unit::all();
 
+        $drivers = User::whereHas('role', fn($q) => $q->where('name', 'driver'))
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
         // =====================
         // BUILD ITEMS
         // =====================
@@ -343,7 +348,7 @@ class AdminWebController extends Controller
 
         $breadcrumbs = [['label' => 'Beranda', 'url' => route('shippings.index')], ['label' => 'Manajemen Pengiriman', 'url' => route('shippings.index')], ['label' => 'Edit Pengiriman', 'url' => '#']];
 
-        return view('General.shippings-edit', compact('travelDocument', 'units', 'items', 'attachments', 'breadcrumbs'));
+        return view('General.shippings-edit', compact('travelDocument', 'units', 'items', 'attachments', 'breadcrumbs', 'drivers'));
     }
 
     /**
@@ -712,7 +717,6 @@ class AdminWebController extends Controller
             'itemCode.*.required' => ':attribute harus diisi.',
             'itemName.*.required' => ':attribute harus diisi.',
             'totalSend.*.required' => ':attribute harus diisi.',
-
             'totalSend.*.max'    => ':attribute maksimal 50 karakter.',
             'quantitySend.*.max' => ':attribute maksimal 50 karakter.',
             'qtyPreOrder.*.string' => ':attribute harus berupa teks.',
