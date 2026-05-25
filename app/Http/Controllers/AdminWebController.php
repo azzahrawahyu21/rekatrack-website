@@ -7,6 +7,8 @@ use App\Models\TravelDocument;
 use App\Models\TravelDocumentAttachment;
 use App\Models\Items;
 use App\Models\Unit;
+use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Validator;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Illuminate\Http\Request;
@@ -119,7 +121,7 @@ class AdminWebController extends Controller
             )
             ->first();
 
-        $breadcrumbs = [['label' => 'Home', 'url' => route('shippings.index')], ['label' => 'Manajemen Pengiriman', 'url' => '#']];
+        $breadcrumbs = [['label' => 'Beranda', 'url' => route('shippings.index')], ['label' => 'Manajemen Pengiriman', 'url' => '#']];
 
         return view('General.shippings', [
             'listTravelDocument' => $listTravelDocument,
@@ -191,6 +193,11 @@ class AdminWebController extends Controller
     {
         $units = Unit::all();
 
+        $drivers = User::whereHas('role', fn($q) => $q->where('name', 'driver'))
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
         $items = [];
 
         // Jika validation gagal, rebuild dari old()
@@ -209,7 +216,7 @@ class AdminWebController extends Controller
                     'information' => old("information.$i"),
                     'qtyPreOrder' => old("qtyPreOrder.$i"),
 
-                    // 🔥 GROUP TITLE
+                    // GROUP TITLE
                     'subItemGroupTitle' => old("subItemGroupTitle.$i"),
 
                     // Sub item akan di-handle blade via old("subItems.$i")
@@ -233,9 +240,9 @@ class AdminWebController extends Controller
             ];
         }
 
-        $breadcrumbs = [['label' => 'Home', 'url' => route('shippings.index')], ['label' => 'Manajemen Pengiriman', 'url' => route('shippings.index')], ['label' => 'Tambah Pengiriman', 'url' => '#']];
+        $breadcrumbs = [['label' => 'Beranda', 'url' => route('shippings.index')], ['label' => 'Manajemen Pengiriman', 'url' => route('shippings.index')], ['label' => 'Tambah Pengiriman', 'url' => '#']];
 
-        return view('General.shippings-add', compact('units', 'items', 'breadcrumbs'));
+        return view('General.shippings-add', compact('units', 'items', 'breadcrumbs', 'drivers'));
     }
 
     /**
@@ -271,7 +278,7 @@ class AdminWebController extends Controller
                     'information' => old("information.$i"),
                     'qtyPreOrder' => old("qtyPreOrder.$i"),
 
-                    // 🔥 GROUP TITLE
+                    // GROUP TITLE
                     'subItemGroupTitle' => old("subItemGroupTitle.$i"),
 
                     // SubItems akan dibaca langsung via old("subItems.$i") di blade
@@ -311,7 +318,7 @@ class AdminWebController extends Controller
                     'information' => $item->information,
                     'qtyPreOrder' => $item->qty_po,
 
-                    // 🔥 GROUP TITLE DARI DB
+                    // GROUP TITLE DARI DB
                     'subItemGroupTitle' => $item->sub_item_group_title,
 
                     'subItems' => $subItems,
@@ -334,7 +341,7 @@ class AdminWebController extends Controller
             }
         }
 
-        $breadcrumbs = [['label' => 'Home', 'url' => route('shippings.index')], ['label' => 'Manajemen Pengiriman', 'url' => route('shippings.index')], ['label' => 'Edit Pengiriman', 'url' => '#']];
+        $breadcrumbs = [['label' => 'Beranda', 'url' => route('shippings.index')], ['label' => 'Manajemen Pengiriman', 'url' => route('shippings.index')], ['label' => 'Edit Pengiriman', 'url' => '#']];
 
         return view('General.shippings-edit', compact('travelDocument', 'units', 'items', 'attachments', 'breadcrumbs'));
     }
@@ -359,6 +366,11 @@ class AdminWebController extends Controller
             $this->createTravelDocumentItems($travelDocument, $validated);
 
             $this->syncAttachments($travelDocument, $validated['attachments'] ?? [], true);
+
+            if ($travelDocument->driver_id) {
+                app(NotificationService::class)
+                    ->notifyAssigned($travelDocument, $travelDocument->driver_id);
+            }
 
             DB::commit();
             return redirect()->route('shippings.index')->with('success', 'Data pengiriman berhasil ditambahkan.');
@@ -545,7 +557,7 @@ class AdminWebController extends Controller
         if ($request->has(['status', 'message'])) {
             session()->flash($request->status, $request->message);
         }
-        $breadcrumbs = [['label' => 'Home', 'url' => route('shippings.index')], ['label' => 'Tracking Pengiriman', 'url' => '#']];
+        $breadcrumbs = [['label' => 'Beranda', 'url' => route('shippings.index')], ['label' => 'Tracking Pengiriman', 'url' => '#']];
         return view('General.tracker', compact('breadcrumbs'));
     }
 
@@ -656,6 +668,7 @@ class AdminWebController extends Controller
             'attachments' => 'nullable|array',
             'attachments.*' => 'nullable|string|max:255',
             // ===== Vehicle & Driver =====
+            'driver_id'    => 'nullable|exists:users,id',
             'vehicleNumber' => 'nullable|string|max:20',
             'driverName' => 'nullable|string|max:255',
             // ===== Sub Items =====
@@ -762,6 +775,13 @@ class AdminWebController extends Controller
         $documentDateStr = $documentDate->format('Y-m-d');
         $isBackdate = $documentDateStr !== $postingDateStr;
 
+        $driverId = $validated['driver_id'] ?? null;
+        $driverName = null;
+        if ($driverId) {
+            $driver     = User::find($driverId);
+            $driverName = $driver?->name;
+        }
+
         return TravelDocument::create([
             'no_travel_document' => $validated['numberSJN'],
             'posting_date' => $postingDate,
@@ -773,7 +793,9 @@ class AdminWebController extends Controller
             'po_number' => $validated['poNumber'],
             'project' => $validated['projectName'],
             'delivery_type' => $validated['deliveryType'],
-            'driver_name' => $validated['driverName'] ?? null,
+            // 'driver_name' => $validated['driverName'] ?? null,
+            'driver_id'          => $driverId,
+            'driver_name'        => $driverName,
             'vehicle_number' => $validated['vehicleNumber'] ?? null,
             'status' => 'Belum terkirim',
         ]);
@@ -954,7 +976,7 @@ class AdminWebController extends Controller
     {
         $trashedDocuments = TravelDocument::onlyTrashed()->with('items')->orderBy('deleted_at', 'desc')->paginate(10);
 
-        $breadcrumbs = [['label' => 'Home', 'url' => route('shippings.index')], ['label' => 'Manajemen Pengiriman', 'url' => route('shippings.index')], ['label' => 'Trash', 'url' => '#']];
+        $breadcrumbs = [['label' => 'Beranda', 'url' => route('shippings.index')], ['label' => 'Manajemen Pengiriman', 'url' => route('shippings.index')], ['label' => 'Trash', 'url' => '#']];
 
         return view('General.shippings-trash', compact('trashedDocuments', 'breadcrumbs'));
     }
@@ -983,8 +1005,32 @@ class AdminWebController extends Controller
             $endTime = $tracking->track->locations->last()->created_at;
         }
 
-        $breadcrumbs = [['label' => 'Home', 'url' => route('shippings.index')], ['label' => 'Manajemen Pengiriman', 'url' => route('shippings.index')], ['label' => 'Shipping Report', 'url' => '#']];
+        $breadcrumbs = [['label' => 'Beranda', 'url' => route('shippings.index')], ['label' => 'Manajemen Pengiriman', 'url' => route('shippings.index')], ['label' => 'Shipping Report', 'url' => '#']];
 
         return view('General.shippings-report', compact('travelDocument', 'confirmation', 'startTime', 'endTime', 'breadcrumbs'));
+    }
+
+    public function assignDriver(Request $request, $id): \Illuminate\Http\RedirectResponse
+    {
+        $request->validate([
+            'driver_id' => 'required|exists:users,id',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $doc = TravelDocument::findOrFail($id);
+            $doc->update([
+                'driver_id'   => $request->driver_id,
+                'driver_name' => User::find($request->driver_id)?->name,
+            ]);
+
+            app(NotificationService::class)->notifyAssigned($doc, $request->driver_id);
+
+            DB::commit();
+            return redirect()->route('shippings.detail', $id)->with('success', 'Driver berhasil ditugaskan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal menugaskan driver.');
+        }
     }
 }

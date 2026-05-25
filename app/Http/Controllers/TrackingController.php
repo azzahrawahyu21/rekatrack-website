@@ -35,7 +35,7 @@ class TrackingController extends Controller
             ->get();
 
         $breadcrumbs = [
-            ['label' => 'Home', 'url' => route('shippings.index')],
+            ['label' => 'Beranda', 'url' => route('shippings.index')],
             ['label' => 'Tracking Pengiriman', 'url' => '#']
         ];
 
@@ -93,7 +93,7 @@ class TrackingController extends Controller
         $travelDocument = TravelDocument::findOrFail($id);
 
         $breadcrumbs = [
-            ['label' => 'Home', 'url' => route('shippings.index')],
+            ['label' => 'Beranda', 'url' => route('shippings.index')],
             ['label' => 'Tracking Pengiriman', 'url' => route('tracking.index')],
             ['label' => $travelDocument->no_travel_document, 'url' => '#']
         ];
@@ -178,6 +178,7 @@ class TrackingController extends Controller
 
         return response()->json([
             'success' => true,
+            'id' => $travelDocument->id,
             'status' => $travelDocument->status,
             'locations' => $locations
         ]);

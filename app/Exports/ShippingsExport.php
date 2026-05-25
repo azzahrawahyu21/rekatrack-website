@@ -45,8 +45,8 @@ class ShippingsExport implements
                 'items.subItems.unit',
                 'driver',
             ])
-            ->orderBy('posting_date', 'desc')
-            ->orderBy('created_at', 'desc');
+            ->orderBy('posting_date', 'asc')
+            ->orderBy('created_at', 'asc');
 
         $this->applyDateFilters($query);
 

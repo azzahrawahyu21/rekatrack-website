@@ -8,6 +8,7 @@ use App\Models\Track;
 use App\Models\User;
 use App\Models\TrackingSystem;
 use App\Models\TravelDocument;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
@@ -18,6 +19,11 @@ use Illuminate\Support\Facades\DB;
 
 class DriverController extends Controller
 {
+    // Inject NotificationService untuk notifikasi (HARUS DIATAS SEMUA FUNGSI LAIN)
+    public function __construct(private NotificationService $notifService)
+    {
+    }
+
     public function forgotPassword(Request $request)
     {
         $request->validate([
@@ -95,10 +101,15 @@ class DriverController extends Controller
         $lat = (float) $request->latitude;
         $lng = (float) $request->longitude;
 
+        $notifService = $this->notifService;
+
         $responses = [];
 
         foreach ($request->travel_document_id as $documentId) {
-            $result = DB::transaction(function () use ($documentId, $driverId, $lat, $lng) {
+            $isFirstStart = false;
+            $docAfterUpdate = null;
+
+            $result = DB::transaction(function () use ($documentId, $driverId, $lat, $lng, &$isFirstStart, &$docAfterUpdate) {
                 // lock dokumen biar tidak race jika 2 shipment update bareng
                 $travelDocument = TravelDocument::where('id', $documentId)->lockForUpdate()->first();
 
@@ -234,6 +245,9 @@ class DriverController extends Controller
                 // }
                 // $travelDocument->update($updates);
                 // start_time, status, dan driver_id
+
+                $isFirstStart = is_null($travelDocument->start_time); // ✅ cek sebelum update
+
                 $updates = ['status' => 'Sedang dikirim'];
 
                 // hanya set driver saat pengiriman benar-benar mulai
@@ -268,6 +282,21 @@ class DriverController extends Controller
                     'message' => 'Lokasi berhasil dikirim.',
                 ];
             });
+
+            if ($isFirstStart && $docAfterUpdate !== null && ($result['status'] ?? '') !== 'error') {
+                try {
+                    $notifService->notifyAdminPickup($docAfterUpdate);
+                    Log::info('notifyAdminPickup berhasil', [
+                        'travel_document_id' => $documentId,
+                        'driver_id'          => $driverId,
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::warning('notifyAdminPickup gagal', [
+                        'travel_document_id' => $documentId,
+                        'error'              => $e->getMessage(),
+                    ]);
+                }
+            }
 
             $responses[] = $result;
         }
@@ -363,6 +392,7 @@ class DriverController extends Controller
             // 'photo_path' => 'required|string|max:255',
         ]);
 
+        $notifService = $this->notifService;        
         $responses = [];
 
         foreach ($request->travel_document_id as $travelDocumentId) {
@@ -404,6 +434,17 @@ class DriverController extends Controller
             ]);
 
             $tracking->update(['status' => 'non-active']);
+
+            // Kirim notifikasi ke admin bahwa pengiriman selesai
+            try {
+                $notifService->notifyAdminDelivered($travelDocument->fresh());
+                Log::info('notifyAdminDelivered berhasil', ['travel_document_id' => $travelDocumentId]);
+            } catch (\Throwable $e) {
+                Log::warning('notifyAdminDelivered gagal', [
+                    'travel_document_id' => $travelDocumentId,
+                    'error'              => $e->getMessage(),
+                ]);
+            }
 
             $receivedAt = Carbon::parse($request->received_at)->setTimezone(config('app.timezone'))->format('Y-m-d H:i:s');
 
