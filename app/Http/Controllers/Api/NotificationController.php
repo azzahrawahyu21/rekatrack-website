@@ -70,16 +70,19 @@ class NotificationController extends Controller
     {
         $notification = Notification::forDriver($request->user()->id)
             ->whereNull('read_at')
-            ->findOrFail($id);
+            ->find($id);   // ← GANTI DARI findOrFail ke find
 
-        $notification->update(['read_at' => now()]);
+        if ($notification) {
+            $notification->update(['read_at' => now()]);
+        }
 
+        // Tetap return success meskipun notifikasi tidak ditemukan / sudah dibaca
         return response()->json([
             'success' => true,
             'message' => 'Notifikasi ditandai sudah dibaca.',
         ]);
     }
-
+    
     /**
      * POST /api/notifications/read-all
      */
