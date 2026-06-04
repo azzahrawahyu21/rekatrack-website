@@ -726,11 +726,14 @@
                                 <input type="text" name="driverName"
                                     value="{{ old('driverName', $travelDocument->driver_name ?? '') }}"
                                     class="form-control @error('driverName') is-invalid @enderror"
-                                    placeholder="Contoh: Nama Driver" />
+                                    placeholder="Contoh: Nama Driver"
+                                    readonly
+                                    style="background-color: #f8fafc; cursor: not-allowed;" />
                             </div>
                             @error('driverName')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
+                            <small class="text-muted">Tidak dapat diubah saat edit.</small>
                         </div>
 
                         {{-- Nopol Kendaraan --}}
@@ -753,9 +756,9 @@
 
                     </div>
 
-                    <small class="text-muted mt-2 d-block">
+                    {{-- <small class="text-muted mt-2 d-block">
                         Kosongkan jika tidak menggunakan driver internal.
-                    </small>
+                    </small> --}}
                 </div>
             </div>
 

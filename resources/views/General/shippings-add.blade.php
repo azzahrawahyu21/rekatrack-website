@@ -642,7 +642,7 @@
                         {{-- Nama Driver --}}
                         <div class="col-md-6">
                             <label class="form-label">Nama Driver</label>
-                            <div class="input-group">
+                            {{-- <div class="input-group">
                                 <span class="input-group-text bg-transparent text-muted"
                                     style="font-size:.8rem;border-right:none;">
                                     <i class="fas fa-user"></i>
@@ -653,6 +653,18 @@
                                     placeholder="Contoh: Nama Driver" />
                             </div>
                             @error('driverName')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror --}}
+                            <select name="driver_id" class="form-select @error('driver_id') is-invalid @enderror">
+                                <option value="">-- Pilih Driver --</option>
+                                @foreach($drivers as $driver)
+                                    <option value="{{ $driver->id }}" 
+                                        {{ old('driver_id') == $driver->id ? 'selected' : '' }}>
+                                        {{ $driver->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('driver_id')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
                         </div>

@@ -384,10 +384,28 @@
         //     }
         //     loadTracking(query);
         // }
+        // function searchTracking() {
+        //     const sjn = document.getElementById("search")?.value?.trim();
+        //     if (!sjn) return showAlert('warning', 'Masukkan nomor surat jalan');
+        //     goDetail(sjn);
+        // }
+        
+        // agar mengarah ke detail tracking
         function searchTracking() {
             const sjn = document.getElementById("search")?.value?.trim();
             if (!sjn) return showAlert('warning', 'Masukkan nomor surat jalan');
-            goDetail(sjn);
+
+            fetch(`{{ route('tracking.search') }}?search=${encodeURIComponent(sjn)}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (!res.success) {
+                        return showAlert('error', res.message);
+                    }
+
+                    // ambil ID dari response (perlu ditambahkan di backend)
+                    goDetail(res.id);
+                })
+                .catch(() => showAlert('error', 'Gagal mencari data'));
         }
 
         // async function getReverseGeocode(lat, lng) {
