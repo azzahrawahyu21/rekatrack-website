@@ -251,7 +251,7 @@
                             <td style="text-align: center;">{{ $item->total_send ?? '-' }}</td>
                             <td style="text-align: center;">{{ $item->qty_po ?? '-' }}</td>
                             <td style="text-align: center;">{{ $item->unit->name ?? '-' }}</td>
-                            <td style="font-size: 0.72rem; text-align: center;">{{ $item->information ?? '-' }}</td>
+                            <td style="font-size: 0.72rem; text-align: center;">{{ $item->information ?? '' }}</td>
                         </tr>
                     @endif
                 @endforeach
