@@ -597,37 +597,37 @@
   }
 
   function drawOrangePoints(latLngs, locations) {
-    if (!pointsLayer) pointsLayer = L.layerGroup().addTo(map);
-    pointsLayer.clearLayers();
+    // if (!pointsLayer) pointsLayer = L.layerGroup().addTo(map);
+    // pointsLayer.clearLayers();
 
-    latLngs.forEach((p, idx) => {
-      const loc = locations?.[idx];
+    // latLngs.forEach((p, idx) => {
+    //   const loc = locations?.[idx];
 
-      const marker = L.circleMarker(p, {
-        radius: 5,
-        weight: 2,
-        color: '#ff7a00',
-        fillColor: '#ff7a00',
-        fillOpacity: 0.9
-      }).addTo(pointsLayer);
+    //   const marker = L.circleMarker(p, {
+    //     radius: 5,
+    //     weight: 2,
+    //     color: '#ff7a00',
+    //     fillColor: '#ff7a00',
+    //     fillOpacity: 0.9
+    //   }).addTo(pointsLayer);
 
-      const popupId = `addr-${idx}`;
-      marker.bindPopup(`
-        <strong>📍 Titik #${idx + 1}</strong><br>
-        ${loc?.latitude ?? p[0]}, ${loc?.longitude ?? p[1]}<br>
-        <small>${fmtTime(loc?.timestamp)}</small><br>
-        <small><i class="fas fa-map-marker-alt"></i> <span id="${popupId}">Klik untuk alamat...</span></small>
-      `);
+    //   const popupId = `addr-${idx}`;
+    //   marker.bindPopup(`
+    //     <strong>📍 Titik #${idx + 1}</strong><br>
+    //     ${loc?.latitude ?? p[0]}, ${loc?.longitude ?? p[1]}<br>
+    //     <small>${fmtTime(loc?.timestamp)}</small><br>
+    //     <small><i class="fas fa-map-marker-alt"></i> <span id="${popupId}">Klik untuk alamat...</span></small>
+    //   `);
 
-      marker.on('popupopen', async () => {
-        const lat = loc?.latitude != null ? parseFloat(loc.latitude) : p[0];
-        const lng = loc?.longitude != null ? parseFloat(loc.longitude) : p[1];
-        const addr = await reverseGeocode(lat, lng);
+    //   marker.on('popupopen', async () => {
+    //     const lat = loc?.latitude != null ? parseFloat(loc.latitude) : p[0];
+    //     const lng = loc?.longitude != null ? parseFloat(loc.longitude) : p[1];
+    //     const addr = await reverseGeocode(lat, lng);
 
-        const el = document.getElementById(popupId);
-        if (el) el.textContent = addr || '-';
-      });
-    });
+    //     const el = document.getElementById(popupId);
+    //     if (el) el.textContent = addr || '-';
+    //   });
+    // });
   }
 
   function focusRoute() {
@@ -676,7 +676,11 @@
 
       const route = await res.json();
       const coords = route?.features?.[0]?.geometry?.coordinates;
-      if (!coords?.length) return;
+      // if (!coords?.length) return;
+      if (!coords?.length) {
+        drawGpsLine(latLngs); // fallback
+        return;
+      }
 
       const roadPath = coords.map(c => [c[1], c[0]]);
 
@@ -685,9 +689,10 @@
         roadLine.setStyle({ color: '#ff0000', weight: 6, opacity: 0.9, lineJoin: 'round' });
       } else {
         roadLine = L.polyline(roadPath, {
+          color: '#ef4444', // merah
           weight: 6,
           opacity: 0.9,
-          lineJoin: 'round'
+          // lineJoin: 'round'
         }).addTo(map);
       }
 
@@ -793,5 +798,20 @@
     await fetchTracking();
     startPolling();
   });
+
+  drawGpsLine(latLngs); // DISABLED
+  function drawGpsLine(latLngs) {
+    if (!latLngs.length) return;
+
+    if (gpsLine) {
+      gpsLine.setLatLngs(latLngs);
+    } else {
+      gpsLine = L.polyline(latLngs, {
+        color: '#2563eb',
+        weight: 4,
+        opacity: 0.7
+      }).addTo(map);
+    }
+  }
 </script>
 @endpush
