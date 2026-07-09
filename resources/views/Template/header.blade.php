@@ -34,7 +34,7 @@
       <!-- User Menu (kanan) -->
       <ul class="navbar-nav topbar-nav ms-auto align-items-center">
         <!-- Notifikasi Bell -->
-        <li class="nav-item dropdown me-3">
+        {{-- <li class="nav-item dropdown me-3">
           <a href="#" class="nav-link" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
               <span class="notif-bell-wrapper" style="position:relative; display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px;">
                   
@@ -86,7 +86,7 @@
               </a>
             </li>
           </ul>
-        </li>
+        </li> --}}
         
         <li class="nav-item topbar-user dropdown hidden-caret">
           <a

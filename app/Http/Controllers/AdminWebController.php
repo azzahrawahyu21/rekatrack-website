@@ -178,7 +178,7 @@ class AdminWebController extends Controller
 
         $subCount = $travelDocument->items->sum(fn($item) => $item->subItems ? $item->subItems->count() : 0);
 
-        $breadcrumbs = [['label' => 'Home', 'url' => route('shippings.index')], ['label' => 'Manajemen Pengiriman', 'url' => route('shippings.index')], ['label' => 'Detail Pengiriman', 'url' => '#']];
+        $breadcrumbs = [['label' => 'Beranda', 'url' => route('shippings.index')], ['label' => 'Manajemen Pengiriman', 'url' => route('shippings.index')], ['label' => 'Detail Pengiriman', 'url' => '#']];
 
         return view('General.shippings-detail', compact('travelDocument', 'breadcrumbs', 'subCount'));
     }

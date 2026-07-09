@@ -23,7 +23,7 @@ class SuperAdminWebController extends Controller
             ->paginate(10)
             ->appends(['search' => $search]);
 
-        $breadcrumbs = [['label' => 'Home', 'url' => route('users.index')], ['label' => 'Manajemen Pengguna', 'url' => '#']];
+        $breadcrumbs = [['label' => 'Beranda', 'url' => route('users.index')], ['label' => 'Manajemen Pengguna', 'url' => '#']];
 
         return view('General.users', compact('users', 'search', 'breadcrumbs'));
     }
@@ -31,7 +31,7 @@ class SuperAdminWebController extends Controller
     public function add()
     {
         $roles = Role::where('name', '!=', 'Super Admin')->get();
-        $breadcrumbs = [['label' => 'Home', 'url' => route('users.index')],
+        $breadcrumbs = [['label' => 'Beranda', 'url' => route('users.index')],
                         ['label' => 'Tambah Pengguna', 'url' => '#']];
         return view('General.users-add', compact('roles', 'breadcrumbs'));
     }
@@ -40,7 +40,7 @@ class SuperAdminWebController extends Controller
     {
         $user = User::with('role')->findOrFail($id);
         $roles = Role::where('name', '!=', 'Super Admin')->get();
-        $breadcrumbs = [['label' => 'Home', 'url' => route('users.index')],
+        $breadcrumbs = [['label' => 'Beranda', 'url' => route('users.index')],
                         ['label' => 'Edit Pengguna', 'url' => '#']];
         return view('General.users-edit', compact('user', 'roles', 'breadcrumbs'));
     }
