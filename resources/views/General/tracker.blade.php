@@ -185,7 +185,7 @@
 
     <!-- === Peta === -->
     {{-- <div class="row mt-4"> --}}
-    {{-- <div class="row mt-4" id="map-section">
+    <div class="row mt-4" id="map-section">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-body p-0" style="height: 700px; position: relative;">
@@ -193,7 +193,7 @@
                 </div>
             </div>
         </div>
-    </div> --}}
+    </div>
 @endsection
 
 @push('styles')
