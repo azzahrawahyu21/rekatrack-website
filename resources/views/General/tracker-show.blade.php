@@ -599,7 +599,11 @@
   function drawOrangePoints(latLngs, locations) {
     if (!pointsLayer) pointsLayer = L.layerGroup().addTo(map);
     pointsLayer.clearLayers();
+    if (!pointsLayer) pointsLayer = L.layerGroup().addTo(map);
+    pointsLayer.clearLayers();
 
+    latLngs.forEach((p, idx) => {
+      const loc = locations?.[idx];
     latLngs.forEach((p, idx) => {
       const loc = locations?.[idx];
 
@@ -618,12 +622,27 @@
         <small>${fmtTime(loc?.timestamp)}</small><br>
         <small><i class="fas fa-map-marker-alt"></i> <span id="${popupId}">Klik untuk alamat...</span></small>
       `);
+      const popupId = `addr-${idx}`;
+      marker.bindPopup(`
+        <strong>📍 Titik #${idx + 1}</strong><br>
+        ${loc?.latitude ?? p[0]}, ${loc?.longitude ?? p[1]}<br>
+        <small>${fmtTime(loc?.timestamp)}</small><br>
+        <small><i class="fas fa-map-marker-alt"></i> <span id="${popupId}">Klik untuk alamat...</span></small>
+      `);
 
       marker.on('popupopen', async () => {
         const lat = loc?.latitude != null ? parseFloat(loc.latitude) : p[0];
         const lng = loc?.longitude != null ? parseFloat(loc.longitude) : p[1];
         const addr = await reverseGeocode(lat, lng);
+      marker.on('popupopen', async () => {
+        const lat = loc?.latitude != null ? parseFloat(loc.latitude) : p[0];
+        const lng = loc?.longitude != null ? parseFloat(loc.longitude) : p[1];
+        const addr = await reverseGeocode(lat, lng);
 
+        const el = document.getElementById(popupId);
+        if (el) el.textContent = addr || '-';
+      });
+    });
         const el = document.getElementById(popupId);
         if (el) el.textContent = addr || '-';
       });
