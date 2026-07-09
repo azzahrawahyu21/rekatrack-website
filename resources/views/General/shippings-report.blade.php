@@ -403,20 +403,24 @@
         <div class="detail-card-header">
           <div class="detail-card-icon amber"><i class="fas fa-camera"></i></div>
           <h5 class="detail-card-title">Bukti Foto Pengiriman</h5>
-          @if($confirmation && $confirmation->photos->count())
+          @if($confirmation && $confirmation->photos->count() > 0)
             <span style="margin-left:auto;background:var(--brand-light);color:var(--brand);font-size:.75rem;font-weight:700;padding:.25rem .75rem;border-radius:99px;">
               {{ $confirmation->photos->count() }} foto
             </span>
           @endif
         </div>
         <div class="detail-card-body">
-          @if($confirmation && $confirmation->photos->count())
+          @if($confirmation && $confirmation->photos->count() > 0)
             <div class="photo-grid">
               @foreach($confirmation->photos as $photo)
-                <a href="{{ asset('storage/' . $photo->photo_path) }}" target="_blank" class="photo-item">
-                  <img src="{{ asset('storage/' . $photo->photo_path) }}" alt="Bukti Pengiriman">
-                  <div class="photo-overlay"><i class="fas fa-expand-alt"></i></div>
-                </a>
+                @if($photo->photo_path)
+                  <a href="{{ Storage::url($photo->photo_path) }}" target="_blank" class="photo-item">
+                    <img src="{{ Storage::url($photo->photo_path) }}" 
+                        alt="Bukti Pengiriman"
+                        onerror="this.src='https://via.placeholder.com/300x300?text=Photo+Not+Found';">
+                    <div class="photo-overlay"><i class="fas fa-expand-alt"></i></div>
+                  </a>
+                @endif
               @endforeach
             </div>
           @else

@@ -10,13 +10,13 @@ class UnitWebController extends Controller
         public function index()
     {
         $units = Unit::paginate(10);
-        $breadcrumbs = [['label' => 'Home', 'url' => route('shippings.index')], ['label' => 'Manajemen Unit', 'url' => '#']];
+        $breadcrumbs = [['label' => 'Beranda', 'url' => route('shippings.index')], ['label' => 'Manajemen Unit', 'url' => '#']];
         return view('General.units', compact('units', 'breadcrumbs'));
     }
 
     public function create()
     {
-        $breadcrumbs = [['label' => 'Home', 'url' => route('units.index')], ['label' => 'Tambah Unit', 'url' => '#']];
+        $breadcrumbs = [['label' => 'Beranda', 'url' => route('units.index')], ['label' => 'Tambah Unit', 'url' => '#']];
         return view('General.units-add', compact('breadcrumbs'));
     }
 
@@ -33,7 +33,7 @@ class UnitWebController extends Controller
 
     public function edit(Unit $unit)
     {
-        $breadcrumbs = [['label' => 'Home', 'url' => route('units.index')], ['label' => 'Edit Data Unit', 'url' => '#']];
+        $breadcrumbs = [['label' => 'Beranda', 'url' => route('units.index')], ['label' => 'Edit Data Unit', 'url' => '#']];
         return view('General.units-edit', compact('unit', 'breadcrumbs'));
     }
 

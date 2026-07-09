@@ -999,7 +999,7 @@ class AdminWebController extends Controller
     public function shippingsReport($id)
     {
         $travelDocument = TravelDocument::findOrFail($id);
-        $confirmation = DeliveryConfirmation::where('travel_document_id', $id)->first();
+        $confirmation = DeliveryConfirmation::where('travel_document_id', $id)->with('photos')->first();
         $tracking = TrackingSystem::where('travel_document_id', $id)->with('track.locations')->first();
         $startTime = null;
         $endTime = null;
